@@ -1,0 +1,12 @@
+# Legacy standalone PixelSeal/VideoSeal env (use waves_env.txt for new installs)
+torch>=2.1
+torchvision
+huggingface_hub
+Pillow
+numpy
+scipy
+tqdm
+omegaconf
+einops
+opencv-python
+click

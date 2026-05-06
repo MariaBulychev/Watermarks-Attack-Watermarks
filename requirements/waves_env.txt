@@ -1,0 +1,27 @@
+# WAVES env (PixelSeal, VideoSeal, WAM, RoSteALS, StegaStamp, Classifier)
+torch>=2.0
+torchvision
+diffusers>=0.30
+transformers>=4.35
+accelerate>=0.25
+huggingface_hub
+omegaconf
+Pillow>=9
+numpy>=1.24
+scikit-learn>=1.2
+tensorboard>=2.13
+opencv-python
+tqdm
+click
+orjson
+ecc
+bchlib
+onnxruntime-gpu
+einops
+ftfy
+matplotlib
+plotly
+gradio
+pandas
+scikit-image
+kaleido

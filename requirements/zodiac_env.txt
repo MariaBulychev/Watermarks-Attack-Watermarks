@@ -1,0 +1,15 @@
+# ZoDiac (Stable Diffusion 2.1-base via Manojb/stable-diffusion-2-1-base)
+torch==2.0.1
+torchvision==0.15.2
+diffusers==0.21.0
+transformers==4.32.0
+accelerate
+Pillow
+numpy
+scipy
+tqdm
+click
+einops
+ftfy
+omegaconf
+huggingface_hub

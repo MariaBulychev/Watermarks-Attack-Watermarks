@@ -1,0 +1,12 @@
+# Watermark Method Classifier — Dependencies
+# Install with: pip install -r requirements.txt
+# NOTE: torch + torchvision are installed separately in the SLURM script
+#       with --index-url https://download.pytorch.org/whl/cu124
+#       to ensure compatibility with the cluster GPU driver (CUDA 12.4).
+
+transformers>=4.35.0
+Pillow>=9.0.0
+scikit-learn>=1.2.0
+numpy>=1.24.0
+tensorboard>=2.13.0
+accelerate>=0.25.0
