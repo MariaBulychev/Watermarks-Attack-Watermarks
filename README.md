@@ -1,4 +1,4 @@
-# NeurIPS Release — Watermark Generation, Attack, Decoding, and Classification
+# Watermarks Attack Watermarks: Re-Watermarking as a Generic Removal Strategy
 
 This repository contains the code we used to:
 
@@ -226,7 +226,7 @@ that WAVES consumes via `dev/parse.py:get_distances_from_json` and
 
 ---
 
-## Classifier (cl3 — 9 classes)
+## Classifier (cl1 — 9 classes)
 
 `classifier/` is a fine-tuned
 [ConvNeXt-V2 Large 22k](https://huggingface.co/facebook/convnextv2-large-22k-224)

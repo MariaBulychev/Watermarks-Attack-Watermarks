@@ -1,5 +1,5 @@
 """
-Test classifier_3 on MSCOCO SD3.5 watermarked images.
+Test classifier_1 on MSCOCO SD3.5 watermarked images.
 Each subfolder under mscoco_SD3.5/ is treated as the ground-truth class.
 Only folders whose name matches one of the 9 trained classes are evaluated.
 """
