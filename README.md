@@ -497,17 +497,21 @@ python external/WAVES/metric.py --dataset mscoco --source pixelseal
 
 ## Citing
 
-If you use this code, please cite our paper *(NeurIPS, anonymised for
-review)* and WAVES:
+If you use this code, please cite our preprint (details forthcoming) and WAVES:
 
-```bibtex
-@inproceedings{waves2024,
-  title={WAVES: Benchmarking the Robustness of Image Watermarks},
-  author={An, Bang and others},
-  booktitle={ICML},
-  year={2024}
+@inproceedings{an2024waves,
+  title = 	 {{WAVES}: Benchmarking the Robustness of Image Watermarks},
+  author =       {An, Bang and Ding, Mucong and Rabbani, Tahseen and Agrawal, Aakriti and Xu, Yuancheng and Deng, Chenghao and Zhu, Sicheng and Mohamed, Abdirisak and Wen, Yuxin and Goldstein, Tom and Huang, Furong},
+  booktitle = 	 {Proceedings of the 41st International Conference on Machine Learning},
+  pages = 	 {1456--1492},
+  year = 	 {2024},
+  editor = 	 {Salakhutdinov, Ruslan and Kolter, Zico and Heller, Katherine and Weller, Adrian and Oliver, Nuria and Scarlett, Jonathan and Berkenkamp, Felix},
+  volume = 	 {235},
+  series = 	 {Proceedings of Machine Learning Research},
+  month = 	 {21--27 Jul},
+  publisher =    {PMLR},
+  url = 	 {https://proceedings.mlr.press/v235/an24a.html}
 }
-```
 
 Plus the upstream papers for any watermarking method you reuse from
 this repository (see the table above).
