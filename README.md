@@ -26,7 +26,7 @@ this repo come directly from WAVES.
 ## Repository layout
 
 ```
-neurips_release/
+Watermarks-Attack-Watermarks/
 ├── README.md                         ← this file
 ├── watermark/                        ← embed each watermark into clean images
 │   ├── generate_pixelseal.py
