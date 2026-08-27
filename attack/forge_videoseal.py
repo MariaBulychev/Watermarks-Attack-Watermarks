@@ -40,7 +40,7 @@ def main():
     parser.add_argument('--method', type=str, required=True,
                         help='Watermark method whose images to forge (e.g. pixelseal, rosteals)')
     parser.add_argument('--dataset', type=str, default='mscoco',
-                        choices=['mscoco', 'diffusiondb'],
+                        choices=['mscoco', 'diffusiondb', 'diffusiondb_2'],
                         help='Dataset name (default: mscoco)')
     parser.add_argument('--limit', type=int, default=500,
                         help='Max images to process (-1 = all, default: 500)')

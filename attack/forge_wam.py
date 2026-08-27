@@ -39,7 +39,7 @@ def main():
     parser.add_argument('--method', type=str, required=True,
                         help='Watermark method whose images to attack (e.g. pixelseal, rosteals_rand)')
     parser.add_argument('--dataset', type=str, default='mscoco',
-                        choices=['mscoco', 'diffusiondb'],
+                        choices=['mscoco', 'diffusiondb', 'diffusiondb_2'],
                         help='Dataset name (default: mscoco)')
     parser.add_argument('--random', action='store_true',
                         help='Use a different random message per image')

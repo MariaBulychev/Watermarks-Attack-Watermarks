@@ -4,8 +4,8 @@ Apply RoSteALS forgery watermark on top of existing watermarked images.
 This simulates a forgery attack where someone tries to overwrite existing watermarks with RoSteALS.
 
 Usage:
-    python forge_rosteals.py --method stable_sig --dataset mscoco --mode rand --limit 500
-    python forge_rosteals.py --method tree_ring --dataset diffusiondb --mode rand
+    python generate_forgery_rosteals.py --dataset mscoco --method stable_sig
+    python generate_forgery_rosteals.py --dataset diffusiondb --method tree_ring
 """
 
 import os

@@ -53,8 +53,9 @@ Watermarks-Attack-Watermarks/
 │   ├── decode_videoseal.py
 │   ├── decode_wam.py
 │   └── decode_zodiac.py
-├── classifier/                       ← ConvNeXt-V2 Large 9-class classifier
-│   ├── train.py
+├── classifier/                       ← ConvNeXt-V2 Large watermark classifier
+│   ├── train.py                      ← cl1: flat 9-class (8 methods + real)
+│   ├── train_two_stage.py            ← cl2: binary WM detect + 8-scheme ID
 │   ├── test_mscoco.py
 │   ├── config.py
 │   ├── dataset.py
@@ -151,6 +152,9 @@ where `<dataset>` is the second-to-last path component of `--path`.
 ```
 python classifier/train.py
 python classifier/test_mscoco.py --data-root <dir> --model-dir <dir>
+
+# two-stage variant (cl2)
+python classifier/train_two_stage.py --augment --real-max 4000
 ```
 
 ---
@@ -252,6 +256,47 @@ python test_mscoco.py --data-root <dir> --model-dir ./outputs/best_model
 The classifier output JSON is consumed by the WAVES `Pipeline Attack`
 tab and `pipeline/attack/pipeline_metrics.py` to compute final TPR /
 classifier-accuracy numbers.
+
+---
+
+## Classifier (cl2 — two-stage)
+
+`classifier/train_two_stage.py` trains a two-stage variant of the same
+ConvNeXt-V2 Large backbone instead of a single flat 9-way head:
+
+* **Stage 1** — binary head: `not_watermarked` (0) vs `watermarked` (1).
+* **Stage 2** — 8-way head over the known schemes (`pixelseal`,
+  `rosteals`, `stable_sig`, `stegastamp`, `tree_ring`, `wam`, `zodiac`,
+  `videoseal`); only supervised on watermarked samples (real images use
+  `label = -100`, ignored by the loss).
+* Joint loss `L = CE_stage1 + CE_stage2`, both heads trained from
+  scratch on top of the pretrained backbone.
+* Optional unknown-scheme gating at inference: `is_unknown =
+  max(stage2_logits) < tau` (`tau = -inf` by default, i.e. disabled).
+
+Same training recipe as cl1 (512×512, label smoothing 0.1, cosine LR +
+warmup, fp16, batch size 8 × grad-accum 2, lr 2e-5, early stopping
+patience 5, stratified 80/10/10 split — stratified on the 9-way
+scheme/real label). Additionally supports:
+
+* `--real-max N` — override the cap on `real` images independently of
+  `DataConfig.max_per_class`, to balance stage-1 (e.g. `--real-max
+  4000` for a roughly 1:1 real/watermarked split).
+* `--augment` — training-split-only augmentation (`RandomHorizontalFlip`,
+  `RandomVerticalFlip`, mild `ColorJitter`, occasional light
+  `GaussianBlur`). Val/test are left untouched. JPEG, heavy crops, and
+  rotations are deliberately excluded since they overlap with the
+  downstream attack evaluations.
+
+```bash
+cd classifier
+python train_two_stage.py --augment --real-max 4000
+```
+
+The trained weights are saved as a plain `state_dict`
+(`best_model/pytorch_model.bin`) alongside `two_stage_config.json`
+(label maps, head sizes, `tau`) since this is a custom `nn.Module`, not
+a standard HF `AutoModelForImageClassification`.
 
 ---
 

@@ -47,7 +47,7 @@ def main():
     parser = argparse.ArgumentParser(
         description='Apply StegaStamp forgery watermark')
     parser.add_argument('--dataset', type=str, required=True,
-                        choices=['mscoco', 'diffusiondb'],
+                        choices=['mscoco', 'diffusiondb', 'diffusiondb_2'],
                         help='Dataset name')
     parser.add_argument('--method', type=str, required=True,
                         help='Watermark method to attack (e.g. pixelseal, rosteals_rand)')
