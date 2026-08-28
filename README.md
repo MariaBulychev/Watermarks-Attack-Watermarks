@@ -54,9 +54,7 @@ Watermarks-Attack-Watermarks/
 │   ├── decode_wam.py
 │   └── decode_zodiac.py
 ├── classifier/                       ← ConvNeXt-V2 Large watermark classifier
-│   ├── train.py                      ← cl1: flat 9-class (8 methods + real)
-│   ├── train_two_stage.py            ← cl2: binary WM detect + 8-scheme ID
-│   ├── test_mscoco.py
+│   ├── train_two_stage.py            ← binary WM detect + 8-scheme ID
 │   ├── config.py
 │   ├── dataset.py
 │   └── requirements.txt
@@ -150,10 +148,6 @@ where `<dataset>` is the second-to-last path component of `--path`.
 
 ### `classifier/`
 ```
-python classifier/train.py
-python classifier/test_mscoco.py --data-root <dir> --model-dir <dir>
-
-# two-stage variant (cl2)
 python classifier/train_two_stage.py --augment --real-max 4000
 ```
 
@@ -221,7 +215,7 @@ prompts ─┐
          │
          ▼
   WAVES dev/aggregate.py       →   metric.json + figures
-  classifier/test_mscoco.py    →   per-image method predictions (used by adaptive pipeline)
+  classifier/train_two_stage.py →  per-image method predictions (used by adaptive pipeline)
 ```
 
 The decoders write a per-image JSON of distances / bit-strings / p-values
@@ -230,39 +224,10 @@ that WAVES consumes via `dev/parse.py:get_distances_from_json` and
 
 ---
 
-## Classifier (cl1 — 9 classes)
+## Classifier (two-stage)
 
-`classifier/` is a fine-tuned
-[ConvNeXt-V2 Large 22k](https://huggingface.co/facebook/convnextv2-large-22k-224)
-that distinguishes 9 classes:
-
-```
-0 pixelseal   1 rosteals    2 stable_sig
-3 stegastamp  4 tree_ring   5 wam
-6 zodiac      7 videoseal   8 real
-```
-
-Trained at 512×512 with label smoothing (0.1), cosine LR + warmup,
-fp16, batch size 8 × grad-accum 2, lr 2e-5, early stopping (patience 5),
-stratified 80/10/10 split. See `classifier/config.py` for the full
-hyperparameter list and `classifier/requirements.txt` for dependencies.
-
-```bash
-cd classifier
-python train.py
-python test_mscoco.py --data-root <dir> --model-dir ./outputs/best_model
-```
-
-The classifier output JSON is consumed by the WAVES `Pipeline Attack`
-tab and `pipeline/attack/pipeline_metrics.py` to compute final TPR /
-classifier-accuracy numbers.
-
----
-
-## Classifier (cl2 — two-stage)
-
-`classifier/train_two_stage.py` trains a two-stage variant of the same
-ConvNeXt-V2 Large backbone instead of a single flat 9-way head:
+`classifier/train_two_stage.py` trains a two-stage ConvNeXt-V2 Large
+classifier instead of a single flat 9-way head:
 
 * **Stage 1** — binary head: `not_watermarked` (0) vs `watermarked` (1).
 * **Stage 2** — 8-way head over the known schemes (`pixelseal`,
@@ -274,10 +239,11 @@ ConvNeXt-V2 Large backbone instead of a single flat 9-way head:
 * Optional unknown-scheme gating at inference: `is_unknown =
   max(stage2_logits) < tau` (`tau = -inf` by default, i.e. disabled).
 
-Same training recipe as cl1 (512×512, label smoothing 0.1, cosine LR +
-warmup, fp16, batch size 8 × grad-accum 2, lr 2e-5, early stopping
-patience 5, stratified 80/10/10 split — stratified on the 9-way
-scheme/real label). Additionally supports:
+Trained at 512×512 with label smoothing (0.1), cosine LR + warmup,
+fp16, batch size 8 × grad-accum 2, lr 2e-5, early stopping (patience 5),
+stratified 80/10/10 split — stratified on the 9-way scheme/real label.
+See `classifier/config.py` for the full hyperparameter list and
+`classifier/requirements.txt` for dependencies. Additionally supports:
 
 * `--real-max N` — override the cap on `real` images independently of
   `DataConfig.max_per_class`, to balance stage-1 (e.g. `--real-max
@@ -424,22 +390,23 @@ method picked according to that prediction. The flow has three stages.
 
 ### Stage 1 — Classify the victim watermark
 
-Use the 9-class ConvNeXt-V2 classifier in `classifier/` to predict which
+Use the two-stage ConvNeXt-V2 classifier in `classifier/` (see
+[Classifier (two-stage)](#classifier-two-stage) above) to predict which
 watermarking method is present in each image:
 
 ```bash
-# Train once on the 9-class dataset (pixelseal / rosteals / stable_sig /
+# Train once on the labelled dataset (pixelseal / rosteals / stable_sig /
 # stegastamp / tree_ring / wam / zodiac / videoseal / real)
-python classifier/train.py
-
-# Run inference on a directory of victim images
-python classifier/test_mscoco.py \
-    --data-root ./data/main/mscoco \
-    --model-dir ./outputs/best_model
+cd classifier
+python train_two_stage.py --augment --real-max 4000
 ```
 
-This writes a per-image prediction file:
-`./outputs/best_model/mscoco_predictions.json`
+This trains the binary watermarked/real head plus the 8-way scheme head
+and saves weights to `outputs_2stage/best_model/` (`pytorch_model.bin` +
+`two_stage_config.json`). Run inference on a directory of victim images by
+loading `TwoStageWatermarkClassifier` with those saved weights and combining
+the two heads into a single per-image label — `real` if stage-1 predicts
+not-watermarked, otherwise the stage-2 scheme argmax — written out as:
 
 ```json
 { "0.png": "pixelseal", "1.png": "rosteals", "2.png": "tree_ring", ... }
@@ -469,7 +436,7 @@ and dispatches to the per-method scripts:
 
 ```bash
 python ${WAVES_PATH}/pipeline_attack.py \
-    --predictions  ./outputs/best_model/mscoco_predictions.json \
+    --predictions  ./outputs_2stage/best_model/mscoco_predictions.json \
     --dataset      mscoco \
     --routing      adaptive   \   # or 'fixed' / 'random' for the baselines
     --mode         rand
@@ -494,7 +461,7 @@ done
 python ${WAVES_PATH}/dev/aggregate.py --dataset mscoco
 python ${WAVES_PATH}/pipeline_metrics.py \
     --dataset      mscoco \
-    --predictions  ./outputs/best_model/mscoco_predictions.json \
+    --predictions  ./outputs_2stage/best_model/mscoco_predictions.json \
     --routing      adaptive
 ```
 
